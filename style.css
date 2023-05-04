@@ -1,0 +1,28 @@
+body{
+    background-color:rgb(140, 216, 159);
+}
+
+.header{
+    
+    text-align: center;
+    background-color: rgb(27, 167, 80);
+    
+}
+.ord{
+
+    margin-left: 10px;
+}
+.items{
+    margin-left: 20px;
+}
+.myform{
+    border: 5px solid rgba(14, 14, 13, 0.685);
+  padding: 20px;
+  margin: 1px;
+}
+.lst{
+
+  border: 5px solid rgba(10, 10, 10, 0.685);
+  padding: 5px;
+  margin: 1px;
+}
