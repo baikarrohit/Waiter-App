@@ -1,82 +1,86 @@
-let items = [];
-let i = 0;
+let price = document.getElementById("price");
+let dish = document.getElementById("dish");
+let table = document.getElementById("table");
+let table1 = document.querySelector(".tb-1");
+let table2 = document.querySelector(".tb-2");
+let table3 = document.querySelector(".tb-3");
+let dishlist = document.querySelectorAll(".dishlist");
 
+for (let i = 0; i < dishlist.length; i++) {
+  dishlist[i].addEventListener("click", deleteOrder);
+}
 
-function addBill(event){
-    event.preventDefault();
-    let Price = event.target.price.value;
-    let Dish = event.target.dish.value;
-    let Table = event.target.table.value;
-    
-    const billobj = {
-        Price,
-        Dish,
-        Table
+let generateHtml = (id, price, dish, table) => {
+  const li = `<li id="${id}"> ${price} - ${dish} - ${table}
+                    <button type="button" class="delete" id="${id}">Delete</button>
+                </li>`;
+  if (table == "Table 1") {
+    table1.innerHTML = table1.innerHTML + li;
+  } else if (table == "Table 2") {
+    table2.innerHTML = table2.innerHTML + li;
+  } else if (table == "Table 3") {
+    table3.innerHTML = table3.innerHTML + li;
+  }
+};
+
+async function addBill(event) {
+  event.preventDefault();
+  if (price && dish && table) {
+    let billobj = {
+      price: price.value,
+      dish: dish.value,
+      table: table.value,
+    };
+
+    // ********** post Data to Cloud using CrudCrud and POSTMAN **********//
+    try {
+      let response = await axios.post(
+        "https://crudcrud.com/api/bbfda15e68314945b3d25e4dc5a1160a/waiterdata",
+        billobj
+      );
+
+      generateHtml(
+        response.data._id,
+        response.data.price,
+        response.data.dish,
+        response.data.table
+      );
+    } catch (error) {
+      document.body.innerHTML =
+        document.body.innerHTML + "<h4> Ooops! Something Went Wrong </h4>";
+      console.log(error);
     }
-
-//******Save data to local storage *******//
-    items.push(billobj);
-    localStorage.setItem(billobj.Dish,JSON.stringify(items[i]))
-    i++;
-
-// ********** post Data to Cloud using CrudCrud and POSTMAN **********//
-    axios.post("https://crudcrud.com/api/3331fed261074c299b220d98de9ae846/waiterdata",billobj)
-        .then((response) => {
-            showOnScreen(response.data);
-        })
-        .catch((error) => {
-            document.body.innerHTML = document.body.innerHTML + "<h4> Ooops! Something Went Wrong </h4>"
-            console.log(error);
-        })
+  }
 }
 //*********get data from crudcrud *******//
-window.addEventListener('DOMContentLoaded',() => {
-    axios.get("https://crudcrud.com/api/3331fed261074c299b220d98de9ae846/waiterdata")
-        .then((response) => {
-            for(let i=0; i<response.data.length; i++){
-                showOnScreen(response.data[i])
-            }
-        })
-        .catch((error) =>{
-            console.log(error);
-        })
-})
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
+    let response = await axios.get(
+      "https://crudcrud.com/api/bbfda15e68314945b3d25e4dc5a1160a/waiterdata"
+    );
 
-function showOnScreen(billobj){
-   // let add = document.getElementById('table').value;
-    document.getElementById('price').value = '';
-    document.getElementById('dish').value = '';
-    document.getElementById('table').value = '';
+    response.data.forEach((order) => {
+      generateHtml(order._id, order.price, order.dish, order.table);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
 
-    const ul = document.getElementById('tb-1');
-    const li = `<li id="${billobj._id}"> ${billobj.Price} - ${billobj.Dish} - ${billobj.Table}
-             <button onclick="deleteOrder('${billobj._id}')">Delete Order</button>
-         </li>`
-    ul.innerHTML = ul.innerHTML + li;
-
-      
-}
 // delete user
 
-function deleteOrder(itemId){
-        axios.delete(`https://crudcrud.com/api/3331fed261074c299b220d98de9ae846/waiterdata/${itemId}`)
-            .then((response)=>{
-                removeFromScreen(itemId)
-            
-            })
-            .catch((error) => {
-                console.log(error)
-            })
-        
-        
-}
+async function deleteOrder(event) {
+  if (event.target.classList.contains("delete")) {
+    const id = event.target.getAttribute("id");
+    try {
+      let response = await axios.delete(
+        `https://crudcrud.com/api/bbfda15e68314945b3d25e4dc5a1160a/waiterdata/${id}`
+      );
 
-function removeFromScreen(itemId){
-    
-    const parentNode = document.getElementById('tb-1');
-    const childNodeToBeDeleted = document.getElementById(itemId);
-    if(childNodeToBeDeleted){
-        parentNode.removeChild(childNodeToBeDeleted)
+      event.target.parentElement.remove();
+      
+    } catch (error) {
+      console.log(error);
     }
-
+  }
 }
